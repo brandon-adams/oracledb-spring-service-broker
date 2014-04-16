@@ -1,0 +1,8 @@
+---
+applications:
+- name: oracle-broker
+  memory: 512M
+  instances: 1
+  host: oracle-broker
+  domain: 192.168.4.14.xip.io
+  path: build/libs/spring-service-broker.war

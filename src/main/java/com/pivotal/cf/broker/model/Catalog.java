@@ -16,8 +16,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  */
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class Catalog {
-
-	@NotEmpty
+	
 	@JsonSerialize
 	@JsonProperty("services")
 	private List<ServiceDefinition> serviceDefinitions = new ArrayList<ServiceDefinition>();

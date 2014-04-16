@@ -11,11 +11,11 @@ import org.junit.Test;
 
 import com.pivotal.cf.broker.model.Catalog;
 import com.pivotal.cf.broker.model.ServiceDefinition;
-import com.pivotal.cf.broker.service.BeanCatalogService;
+import com.pivotal.cf.broker.service.OracleDBCatalogService;
 
 public class BeanCatalogServiceTest {
 
-	private BeanCatalogService service;
+	private OracleDBCatalogService service;
 	
 	private Catalog catalog;
 	private ServiceDefinition serviceDefinition;
@@ -27,7 +27,7 @@ public class BeanCatalogServiceTest {
 		List<ServiceDefinition> defs = new ArrayList<ServiceDefinition>();
 		defs.add(serviceDefinition);
 		catalog = new Catalog(defs);	
-		service = new BeanCatalogService(catalog);
+		service = new OracleDBCatalogService(catalog);
 	}
 	
 	@Test

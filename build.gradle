@@ -9,7 +9,7 @@ version = '0.1'
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Spring Service Broker for CloudFoundry', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'OracleDB Spring Service Broker for CloudFoundry', 'Implementation-Version': version
     }
 }
 
@@ -38,6 +38,9 @@ dependencies {
     compile ("org.springframework.security:spring-security-web:${springSecurityVersion}")
     compile ("org.springframework.security:spring-security-config:${springSecurityVersion}")          
 
+	compile ("org.springframework:spring-jdbc:${springJDBCVersion}")
+	compile ("org.springframework.data:spring-data-jpa:${springDataJPAVersion}")
+
     compile("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
     compile("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
     compile("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}") 
@@ -55,8 +58,12 @@ dependencies {
     compile "javax.servlet:javax.servlet-api:${servletApiVersion}"
     compile "javax.servlet.jsp:jsp-api:${jspApiVersion}"
     compile "javax.servlet:jstl:${jstlVersion}"
-
+    compile "javax:javaee-api:${javaeeVersion}"
+    
+    compile "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:${hibernatePersistenceVersion}"
     compile "org.hibernate:hibernate-validator:${hibernateValidatorVersion}"
+    
+    compile files("libs/ojdbc6.jar")
   
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
     testCompile "junit:junit:${junitVersion}"

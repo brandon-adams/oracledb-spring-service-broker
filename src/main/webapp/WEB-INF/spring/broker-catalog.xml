@@ -2,9 +2,15 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:context="http://www.springframework.org/schema/context"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
         
+  <!-- <bean id="oracleDBCatalogService" class="com.pivotal.cf.broker.service.OracleDBCatalogService">
+    <constructor-arg name="catalog" ref="catalog" />
+  </bean> -->
+      
   <bean id="catalog" class="com.pivotal.cf.broker.model.Catalog">
     <constructor-arg name="serviceDefinitions" ref="serviceDefinitions" />
   </bean>
@@ -14,9 +20,9 @@
   </util:list>
 
   <bean id="serviceDefinition" class="com.pivotal.cf.broker.model.ServiceDefinition">
-    <constructor-arg name="id" value="mongodb"/>
-    <constructor-arg name="name" value="MongoDB"/>
-    <constructor-arg name="description" value="MongoDB Instances"/>
+    <constructor-arg name="id" value="oracledb"/>
+    <constructor-arg name="name" value="OracleDB"/>
+    <constructor-arg name="description" value="OracleDB Users(ish)"/>
     <constructor-arg name="bindable" value="true"/>
     <constructor-arg name="plans" ref="plans" /> 
     <property name="tags" ref="tags"/>
@@ -27,13 +33,13 @@
   </util:list>
   
   <bean id="plan" class="com.pivotal.cf.broker.model.Plan">
-    <constructor-arg name="id" value="mongo-plan"/>
-    <constructor-arg name="name" value="Default Mongo Plan"/>
-    <constructor-arg name="description" value="This is a default mongo plan.  All services are created equally."/>  
+    <constructor-arg name="id" value="oracle-plan"/>
+    <constructor-arg name="name" value="Default Oracle Plan"/>
+    <constructor-arg name="description" value="This is a default oracle plan.  All services are created equally."/>  
   </bean>
   
   <util:list id="tags">
-    <value>mongodb</value>
+    <value>oracledb</value>
     <value>document</value>
   </util:list>
   
