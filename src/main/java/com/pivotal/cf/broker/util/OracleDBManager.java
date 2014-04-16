@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 //import java.util.Map;
 
 //import com.pivotal.cf.broker.model.ServiceInstance;
-@Service
+//@Service
 public class OracleDBManager {
 
 	private Connection dbConn;
