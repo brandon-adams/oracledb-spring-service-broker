@@ -40,10 +40,10 @@ dependencies {
 
 	compile ("org.springframework:spring-jdbc:${springJDBCVersion}")
 	compile ("org.springframework.data:spring-data-jpa:${springDataJPAVersion}")
-
-    compile("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
-    compile("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
-    compile("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}") 
+	compile ("com.jcraft:jsch:${jschVersion}")
+    compile ("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
+    compile ("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
+    compile ("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}") 
              
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
     runtime "org.slf4j:jcl-over-slf4j:${slf4jVersion}"
@@ -59,6 +59,7 @@ dependencies {
     compile "javax.servlet.jsp:jsp-api:${jspApiVersion}"
     compile "javax.servlet:jstl:${jstlVersion}"
     compile "javax:javaee-api:${javaeeVersion}"
+    
     
     compile "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:${hibernatePersistenceVersion}"
     compile "org.hibernate:hibernate-validator:${hibernateValidatorVersion}"
