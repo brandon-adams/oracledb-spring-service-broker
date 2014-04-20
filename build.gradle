@@ -64,7 +64,7 @@ dependencies {
     compile "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:${hibernatePersistenceVersion}"
     compile "org.hibernate:hibernate-validator:${hibernateValidatorVersion}"
     
-    compile files("libs/ojdbc6.jar")
+    compile files("util/libs/ojdbc6.jar")
   
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
     testCompile "junit:junit:${junitVersion}"
