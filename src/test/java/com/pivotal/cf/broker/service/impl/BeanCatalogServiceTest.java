@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import com.pivotal.cf.broker.model.Catalog;
 import com.pivotal.cf.broker.model.ServiceDefinition;
-import com.pivotal.cf.broker.service.OracleDBCatalogService;
+import com.pivotal.cf.broker.service.oracle.OracleDBCatalogService;
 
 public class BeanCatalogServiceTest {
 

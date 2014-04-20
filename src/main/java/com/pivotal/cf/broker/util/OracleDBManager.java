@@ -67,22 +67,29 @@ public class OracleDBManager {
 		try {
 			stmnt = dbConn.createStatement();
 			// String sql = "create user " + dbName + " identified by " + pass;
-			if (!createOracleFS(dbName)){
+			boolean dbfs = createOracleFS(dbName);
+			boolean dbinit = createDBInitFile(dbName);
+			if (!dbfs || !dbinit){
+				System.out.println("HELP");
 				throw new Exception("File system creation failed. Look into this man.");
 			}
 			String sql = createDBStmt(dbName);
+			System.out.println("Executing create sql statement");
 			stmnt.execute(sql);
+			System.out.println("Executing catalog.sql");
 			stmnt.execute("$ORACLE_HOME/rdbms/admin/catalog.sql");
+			System.out.println("Executing catproc.sql");
 			stmnt.execute("$ORACLE_HOME/rdbms/admin/catproc.sql");
+			System.out.println("Executing pubbld.sql");
 			stmnt.execute("$ORACLE_HOME/sqlplus/admin/pupbld.sql");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			//return null;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			//return null;
 		}
 		System.out.println("Create success");
 		return dbName;
@@ -193,8 +200,9 @@ public class OracleDBManager {
 							+ ee.getMessage());
 				}
 			}
-			if (channel.getExitStatus() != 0)
+			if (channel.getExitStatus() != 0){
 				exit = false;
+			}
 			channel.disconnect();
 			session.disconnect();
 			//Runtime.getRuntime().exec("scp -i util/heat_key.pem -r util/scripts root@" + dbHost + ":~/");
@@ -202,9 +210,7 @@ public class OracleDBManager {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
 			exit = false;
 			// System.exit(0);
-		} finally {
-
-		}
+		} 
 		return exit;
 	}
 	
@@ -326,8 +332,13 @@ public class OracleDBManager {
 	public static void main(String[] args) {
 		OracleDBManager test = new OracleDBManager();
 		//test.createOracleFS("test");
-		String result = (test.createDB("test").isEmpty() ? "ERROR" : "SUCCESS");
+		try {
+		boolean temp = test.createDB("test").isEmpty();
+		String result = (temp ? "ERROR" : "SUCCESS");
 		System.out.println(result);
+		} catch (Exception e){
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+		}
 	}
 
 }

@@ -7,7 +7,7 @@
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
         
-  <!-- <bean id="oracleDBCatalogService" class="com.pivotal.cf.broker.service.OracleDBCatalogService">
+  <!-- <bean id="oracleDBCatalogService" class="com.pivotal.cf.broker.service.oracle.OracleDBCatalogService">
     <constructor-arg name="catalog" ref="catalog" />
   </bean> -->
       
