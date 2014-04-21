@@ -25,11 +25,10 @@ public class CatalogController extends BaseController {
 	public static final String BASE_PATH = "/v2/catalog";
 	
 	private static final Logger logger = LoggerFactory.getLogger(CatalogController.class);
-	@Qualifier("oracleDBCatalogService")
 	private CatalogService service;
 	
 	@Autowired
-	public CatalogController( CatalogService service) {
+	public CatalogController(@Qualifier("oracleDBCatalogService") CatalogService service) {
 		this.service = service;
 	}
 	

@@ -13,11 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.pivotal.cf.broker.exception.ServiceBrokerException;
+import com.pivotal.cf.broker.exception.ServiceInstanceDoesNotExistException;
 import com.pivotal.cf.broker.exception.ServiceInstanceExistsException;
 import com.pivotal.cf.broker.model.ServiceDefinition;
 import com.pivotal.cf.broker.model.ServiceInstance;
 //import com.pivotal.cf.broker.repos.OracleDBServiceRepository;
 import com.pivotal.cf.broker.service.ServiceInstanceService;
+import com.pivotal.cf.broker.util.OracleDBManager;
 
 /**
  * @author opstack
@@ -27,9 +29,10 @@ import com.pivotal.cf.broker.service.ServiceInstanceService;
 public class OracleDBServiceInstanceService implements ServiceInstanceService {
 
 	//private Map<String, ServiceInstance> serviceInsts = new HashMap<String, ServiceInstance>();
-	//@Autowired
-	//OracleDBServiceRepository serviceRepo;
-	Map<String, ServiceInstance> serviceRepo = new HashMap<String, ServiceInstance>();
+	@Autowired
+	private OracleDBManager dbManager;
+	
+	private Map<String, ServiceInstance> serviceRepo = new HashMap<String, ServiceInstance>();
 	/*@Autowired
 	public OracleDBServiceInstanceService(){
 		
@@ -49,7 +52,6 @@ public class OracleDBServiceInstanceService implements ServiceInstanceService {
 		while( itr.hasNext() ){
 			serviceInstances.add(itr.next());
 		}
-	    
 	    return serviceInstances;
 	}
 
@@ -85,7 +87,10 @@ public class OracleDBServiceInstanceService implements ServiceInstanceService {
 			throw new ServiceBrokerException("Failed to create new DB instance: " + instance.getId());
 		}*/
 		//serviceRepo.save(instance);
-		serviceRepo.put(serviceInstanceId, instance);
+		if (dbManager.createDB(serviceInstanceId) == null){
+			throw new ServiceBrokerException("Failed to create new DB instance: " + instance.getId());
+		}
+		serviceRepo.put(instance.getId(), instance);
 		return instance;
 	}
 

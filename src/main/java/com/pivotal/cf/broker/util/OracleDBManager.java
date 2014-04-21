@@ -7,29 +7,42 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import com.jcraft.jsch.*;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 //import java.util.HashMap;
 //import java.util.Map;
 
 //import com.pivotal.cf.broker.model.ServiceInstance;
-//@Service
+@Service
 public class OracleDBManager {
 
 	private Connection dbConn;
-	private final String dbSysUser = "SYS";
-	private final String dbSysPass = "password";
-	private final String dbHost = "192.168.4.25";
-	
+	private String dbDriver;// = "jdbc:oracle:thin";
+	private String dbSysUser;// = "SYS";
+	private String dbSysPass;// = "password";
+	private String dbHost;// = "192.168.4.25";
+	private String dbPort;// = "1521";
+
 	private JSch shell;
 	private Session session;
-	private Channel channel;
 
-	public OracleDBManager() {
+	// private Channel channel;
+	@Autowired
+	public OracleDBManager(String dbDriver, String dbSysUser, String dbSysPass,
+			String dbHost, String dbPort) {
 
+		this.dbDriver = dbDriver;
+		this.dbSysUser = dbSysUser;
+		this.dbSysPass = dbSysPass;
+		this.dbHost = dbHost;
+		this.dbPort = dbPort;
+		
 		dbConn = null;
 		try {
 			Class.forName("oracle.jdbc.driver.OracleDriver");
@@ -37,8 +50,8 @@ public class OracleDBManager {
 			props.put("user", dbSysUser);
 			props.put("password", dbSysPass);
 			props.put("internal_logon", "SYSDBA");
-			dbConn = DriverManager.getConnection("jdbc:oracle:thin:@" + dbHost
-					+ ":1521:", props);
+			dbConn = DriverManager.getConnection(dbDriver + ":@" + dbHost + ":"
+					+ dbPort + ":", props);
 
 			shell = new JSch();
 
@@ -68,34 +81,46 @@ public class OracleDBManager {
 			stmnt = dbConn.createStatement();
 			// String sql = "create user " + dbName + " identified by " + pass;
 			boolean dbfs = createOracleFS(dbName);
-			boolean dbinit = createDBInitFile(dbName);
-			if (!dbfs || !dbinit){
-				System.out.println("HELP");
-				throw new Exception("File system creation failed. Look into this man.");
+			// System.out.println(dbfs);
+			if (!dbfs) {
+				// System.out.println("HELP");
+				throw new Exception(
+						"File system creation failed. Look into this man.");
 			}
 			String sql = createDBStmt(dbName);
+			// System.out.println("Executing create sql statement");
+			// stmnt.addBatch(sql);
+			// stmnt.addBatch("STARTUP NOMOUNT");
 			System.out.println("Executing create sql statement");
-			stmnt.execute(sql);
+			stmnt.addBatch("CREATE DATABASE " + dbName + " "
+					+ "USER SYS IDENTIFIED BY " + dbSysPass + " "
+					+ "USER SYSTEM IDENTIFIED BY " + dbSysPass + " "
+					+ "UNDO TABLESPACE undotbs "
+					+ "DEFAULT TEMPORARY TABLESPACE tempts1");
 			System.out.println("Executing catalog.sql");
-			stmnt.execute("$ORACLE_HOME/rdbms/admin/catalog.sql");
+			stmnt.addBatch("@$ORACLE_HOME/rdbms/admin/catalog.sql");
 			System.out.println("Executing catproc.sql");
-			stmnt.execute("$ORACLE_HOME/rdbms/admin/catproc.sql");
+			stmnt.addBatch("@$ORACLE_HOME/rdbms/admin/catproc.sql");
 			System.out.println("Executing pubbld.sql");
-			stmnt.execute("$ORACLE_HOME/sqlplus/admin/pupbld.sql");
+			stmnt.addBatch("@$ORACLE_HOME/sqlplus/admin/pupbld.sql");
+			for (int i = 0; i < stmnt.executeBatch().length; i++) {
+				System.out.println(i);
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
-			//return null;
+			// return null;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
-			//return null;
+			// return null;
 		}
 		System.out.println("Create success");
 		return dbName;
 	}
 
-	public String createUser(String userName, String userPass, String dbName) {
+	public Map<String, String> createUser(String userName, String userPass,
+			String dbName) {
 
 		Statement stmnt = null;
 		try {
@@ -110,15 +135,19 @@ public class OracleDBManager {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("Create success");
-		return userName;
+		// System.out.println("Create success");
+		Map<String, String> dbUri = new HashMap<String, String>();
+		dbUri.put("driver", dbDriver);
+		dbUri.put("host", dbHost);
+		dbUri.put("port", dbPort);
+		return dbUri;
 	}
 
 	public String showDB(String dbName) {
 		Statement stmnt = null;
 		try {
 			stmnt = dbConn.createStatement();
-			String sql = "show database " + dbName + ";";
+			String sql = "SELECT * FROM " + dbName;
 			stmnt.execute(sql);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -135,7 +164,7 @@ public class OracleDBManager {
 		Statement stmnt = null;
 		try {
 			stmnt = dbConn.createStatement();
-			String sql = "DROP DATABASE " + dbName + ";";
+			String sql = "DROP DATABASE " + dbName + "";
 			stmnt.execute(sql);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -152,7 +181,7 @@ public class OracleDBManager {
 		Statement stmnt = null;
 		try {
 			stmnt = dbConn.createStatement();
-			String sql = "DROP USER " + userName + " CASCADE;";
+			String sql = "DROP USER " + userName + " CASCADE";
 			stmnt.execute(sql);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -169,7 +198,7 @@ public class OracleDBManager {
 		boolean exit = true;
 		try {
 			session.connect();
-			channel = session.openChannel("exec");
+			Channel channel = session.openChannel("exec");
 			// ((ChannelExec) channel).setCommand("export TEST_ENV=" + dbName +
 			// "; echo $TEST_ENV");
 			((ChannelExec) channel).setCommand("sh db_init_file.sh " + dbName);
@@ -200,25 +229,26 @@ public class OracleDBManager {
 							+ ee.getMessage());
 				}
 			}
-			if (channel.getExitStatus() != 0){
+			if (channel.getExitStatus() != 0) {
 				exit = false;
 			}
 			channel.disconnect();
 			session.disconnect();
-			//Runtime.getRuntime().exec("scp -i util/heat_key.pem -r util/scripts root@" + dbHost + ":~/");
+			// Runtime.getRuntime().exec("scp -i util/heat_key.pem -r util/scripts root@"
+			// + dbHost + ":~/");
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
 			exit = false;
 			// System.exit(0);
-		} 
+		}
 		return exit;
 	}
-	
+
 	private boolean createOracleFS(String dbName) {
 		boolean exit = true;
 		try {
 			session.connect();
-			channel = session.openChannel("exec");
+			Channel channel = session.openChannel("exec");
 			// ((ChannelExec) channel).setCommand("export TEST_ENV=" + dbName +
 			// "; echo $TEST_ENV");
 			((ChannelExec) channel).setCommand("sh new_oracle_fs.sh " + dbName);
@@ -252,8 +282,41 @@ public class OracleDBManager {
 			if (channel.getExitStatus() != 0)
 				exit = false;
 			channel.disconnect();
+			((ChannelExec) channel).setCommand("sh db_init_file.sh " + dbName);
+			channel.setInputStream(null);
+			((ChannelExec) channel).setErrStream(System.err);
+			in = channel.getInputStream();
+			channel.connect();
+
+			tmp = new byte[1024];
+			while (true) {
+				while (in.available() > 0) {
+					int i = in.read(tmp, 0, 1024);
+					if (i < 0)
+						break;
+					System.out.print(new String(tmp, 0, i));
+				}
+				if (channel.isClosed()) {
+					if (in.available() > 0)
+						continue;
+					System.out.println("exit-status: "
+							+ channel.getExitStatus());
+					break;
+				}
+				try {
+					Thread.sleep(1000);
+				} catch (Exception ee) {
+					System.err.println(ee.getClass().getName() + ": "
+							+ ee.getMessage());
+				}
+			}
+			if (channel.getExitStatus() != 0) {
+				exit = false;
+			}
+			channel.disconnect();
 			session.disconnect();
-			//Runtime.getRuntime().exec("scp -i util/heat_key.pem -r util/scripts root@" + dbHost + ":~/");
+			// Runtime.getRuntime().exec("scp -i util/heat_key.pem -r util/scripts root@"
+			// + dbHost + ":~/");
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
 			exit = false;
@@ -266,25 +329,23 @@ public class OracleDBManager {
 
 	private String createUserStmt(String userName, String userPass,
 			String dbName) {
-		StringBuilder createDB = new StringBuilder();
-		createDB.append("CREATE USER " + userName + " ")
+		StringBuilder createUser = new StringBuilder();
+		createUser.append("CREATE USER " + userName + " ")
 				.append("IDENTIFIED BY " + userPass + " ")
 				.append("DEFAULT TABLESPACE " + dbName + " ")
 				.append("TEMPORARY TABLESPACE temp ")
-				.append("PROFILE default; ")
-				.append("ALTER USER " + userName + " QUOTA UNLIMITED ON "
-						+ dbName + "; ")
-				.append("GRANT CREATE SESSION, CREATE TABLE, CREATE VIEW, CREATE SEQUENCE TO "
-						+ userName + "; ");
-
-		return null;
+				.append("PROFILE default ")
+				.append("QUOTA UNLIMITED ON " + dbName + " ");
+		// .append("GRANT CREATE SESSION, CREATE TABLE, CREATE VIEW, CREATE SEQUENCE TO "
+		// + userName + "; ");
+		// System.out.println(createUser.toString());
+		return createUser.toString();
 	}
 
 	private String createDBStmt(String dbName) {
 
 		StringBuilder createDB = new StringBuilder();
-		createDB.append("STARTUP NOMOUNT;")
-				.append("CREATE DATABASE " + dbName + " ")
+		createDB.append("CREATE DATABASE " + dbName + " ")
 				.append("USER SYS IDENTIFIED BY " + dbSysPass + " ")
 				.append("USER SYSTEM IDENTIFIED BY " + dbSysPass + " ")
 				.append("LOGFILE GROUP 1 ('/u01/logs/" + dbName
@@ -324,21 +385,25 @@ public class OracleDBManager {
 				.append("USER_DATA TABLESPACE usertbs ")
 				.append("DATAFILE '/u01/app/oracle/oradata/" + dbName
 						+ "/usertbs01.dbf' ")
-				.append("SIZE 200M REUSE AUTOEXTEND ON MAXSIZE UNLIMITED;");
+				.append("SIZE 200M REUSE AUTOEXTEND ON MAXSIZE UNLIMITED");
 
 		return createDB.toString();
 	}
 
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		OracleDBManager test = new OracleDBManager();
-		//test.createOracleFS("test");
+		// test.createOracleFS("test");
 		try {
-		boolean temp = test.createDB("test").isEmpty();
-		String result = (temp ? "ERROR" : "SUCCESS");
-		System.out.println(result);
-		} catch (Exception e){
+			boolean temp = test.createDB("test").isEmpty();
+			String result = (temp ? "ERROR" : "SUCCESS");
+			System.out.println(result);
+			// test.deleteDB("test");
+			// System.out.println(test.createDBInitFile("test"));
+			// test.createUser("test", "test", "system");
+			// test.deleteUser("test");
+		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
 		}
-	}
+	}*/
 
 }
